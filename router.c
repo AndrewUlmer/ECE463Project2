@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
 
     // Setup UDP connection with network emulator
     int sockfd;
-    struct pkt_INIT_RESPONSE *buffer;
+    struct pkt_INIT_RESPONSE *buffer = malloc(sizeof(struct pkt_INIT_RESPONSE));
 
     // Continue setup
     struct sockaddr_in servaddr;
@@ -39,8 +39,11 @@ int main(int argc, char **argv) {
             MSG_CONFIRM, (const struct sockaddr *)&servaddr, sizeof(servaddr));
     
     // Get INIT_RESPONSE
-    n = recvfrom(sockfd, (struct pkt_INIT_RESPONSE *)buffer, sizeof(struct pkt_INIT_RESPONSE), MSG_WAITALL, (struct sockaddr *)&servaddr, &len);
-    printf("Server : %d\n", buffer->no_nbr);
+    ntoh_pkt_INIT_RESPONSE(buffer);
+    n = recvfrom(sockfd, buffer, sizeof(struct pkt_INIT_RESPONSE), 
+            MSG_WAITALL, (struct sockaddr *)&servaddr, &len);
+    ntoh_pkt_INIT_RESPONSE(buffer);
+    printf("# of directly connected neighbors: %d\n", buffer->no_nbr);
     close(sockfd);
     
     // Startup - Sends INIT_REQUEST for each router to Emulator (only router-id)

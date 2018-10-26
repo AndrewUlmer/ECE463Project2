@@ -32,7 +32,7 @@ R : router
 	./router 0 localhost 9999 8080	
 
 NE : 
-	./ne 9999 1_routers.conf
+	./ne 9999 3_routers.conf
 
 clean :
 	rm -f *.o
