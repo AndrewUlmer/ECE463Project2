@@ -43,14 +43,10 @@ int main(int argc, char **argv) {
     n = recvfrom(sockfd, buffer, sizeof(struct pkt_INIT_RESPONSE), 
             MSG_WAITALL, (struct sockaddr *)&servaddr, &len);
     ntoh_pkt_INIT_RESPONSE(buffer);
-    printf("# of directly connected neighbors: %d\n", buffer->no_nbr);
     close(sockfd);
     
-    // Startup - Sends INIT_REQUEST for each router to Emulator (only router-id)
-   
-
     // Take INIT_RESPONSE returned from network emulator and update routing table using InitRoutingTbl()
-
+    InitRoutingTbl(buffer, routerID); 
         
     // InitRoutingTbl(InitResponse, routerID);
 
