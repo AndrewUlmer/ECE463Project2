@@ -74,8 +74,12 @@ int UpdateRoutes(struct pkt_RT_UPDATE *RecvdUpdatePacket, int costToNbr, int myI
                 {
                     routingTable[i].next_hop = RecvdUpdatePacket->sender_id; // next_hop is sender
                     routingTable[i].cost = cost_to_sender + RecvdUpdatePacket->route[i].cost; // cost is through sender
-                    is_changed = 1;
+                    if(routingTable[i].cost > INFINITY)
+                    {
+                        routingTable[i].cost = INFINITY;
+                    }
 
+                    is_changed = 1;
                 }
 
                 break; // go to next received entry (stop iterating through my routing table)
@@ -94,4 +98,47 @@ int UpdateRoutes(struct pkt_RT_UPDATE *RecvdUpdatePacket, int costToNbr, int myI
     }
 
     return(is_changed);
+}
+
+void ConvertTabletoPkt(struct pkt_RT_UPDATE *UpdatePacketToSend, int myID)
+{
+    int i = 0; // for loop var
+
+    UpdatePacketToSend->sender_id = myID;
+    UpdatePacketToSend->no_routes = NumRoutes;
+
+    // memcopy would probably be better
+    for(i = 0; i < NumRoutes; ++i)
+    {
+        route[i].dest_id = routingTable[i].dest_id;
+        route[i].next_hop = routingTable[i].next_hop;
+        route[i].cost = routingTable[i].cost;
+    }
+}
+
+void PrintRoutes (FILE* Logfile, int myID)
+{
+    int i = 0; // for loop var
+
+    fprintf(Logfile, "Routing Table:");
+
+    for(i = 0; i < NumRoutes; ++i)
+    {
+        fprintf("\nR%d -> R%d: R%d, %d", myID, routingTable[i].dest_id, routingTable[i].next_hop, routingTable[i].cost);
+    }
+
+    fflush(Logfile);
+}
+
+void UninstallRoutesOnNbrDeath(int DeadNbr)
+{
+    int i = 0; // for loop var
+
+    for(i = 0; i < NumRoutes; ++i)
+    {
+        if(routingTable[i].next_hop == DeadNbr)
+        {
+            routingTable[i].cost = INFINITY;
+        }
+    }
 }
