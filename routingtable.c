@@ -90,9 +90,9 @@ int UpdateRoutes(struct pkt_RT_UPDATE *RecvdUpdatePacket, int costToNbr, int myI
         if(is_found == 0x00)
         {
             ++NumRoutes;
-            routingTable[NumRoutes-1].dest_id = RecvdUpdatePacket->route[j]->dest_id;
-            routingTable[NumRoutes-1].next_hop = RecvdUpdatePacket->route[j]->next_hop;
-            routingTable[NumRoutes-1].cost = ecvdUpdatePacket->route[j]->cost;
+            routingTable[NumRoutes-1].dest_id = RecvdUpdatePacket->route[j].dest_id;
+            routingTable[NumRoutes-1].next_hop = RecvdUpdatePacket->route[j].next_hop;
+            routingTable[NumRoutes-1].cost = RecvdUpdatePacket->route[j].cost;
             is_changed = 1;
         }
     }
@@ -110,9 +110,9 @@ void ConvertTabletoPkt(struct pkt_RT_UPDATE *UpdatePacketToSend, int myID)
     // memcopy would probably be better
     for(i = 0; i < NumRoutes; ++i)
     {
-        route[i].dest_id = routingTable[i].dest_id;
-        route[i].next_hop = routingTable[i].next_hop;
-        route[i].cost = routingTable[i].cost;
+        UpdatePacketToSend->route[i].dest_id = routingTable[i].dest_id;
+        UpdatePacketToSend->route[i].next_hop = routingTable[i].next_hop;
+        UpdatePacketToSend->route[i].cost = routingTable[i].cost;
     }
 }
 
@@ -124,7 +124,7 @@ void PrintRoutes (FILE* Logfile, int myID)
 
     for(i = 0; i < NumRoutes; ++i)
     {
-        fprintf("\nR%d -> R%d: R%d, %d", myID, routingTable[i].dest_id, routingTable[i].next_hop, routingTable[i].cost);
+        fprintf(Logfile, "\nR%d -> R%d: R%d, %d", myID, routingTable[i].dest_id, routingTable[i].next_hop, routingTable[i].cost);
     }
 
     fflush(Logfile);
