@@ -16,7 +16,7 @@ void InitRoutingTbl (struct pkt_INIT_RESPONSE *InitResponse, int myID)
     }
 
     // Initialize number of routes in the routing table
-    NumRoutes = InitResponse->no_nbr;
+    NumRoutes = InitResponse->no_nbr + 1;
 
     // Add self-route entry
     routingTable[0].dest_id = myID;
@@ -26,11 +26,11 @@ void InitRoutingTbl (struct pkt_INIT_RESPONSE *InitResponse, int myID)
     // Iterate through routing table and add initial neighbor entries
     for(i = 1; i < NumRoutes; ++i)
     {
-        routingTable[i].dest_id = InitResponse->nbrcost[i].nbr;
+        routingTable[i].dest_id = InitResponse->nbrcost[i-1].nbr;
         routingTable[i].next_hop = routingTable[i].dest_id;
-        routingTable[i].cost = InitResponse->nbrcost[i].cost;
+        routingTable[i].cost = InitResponse->nbrcost[i-1].cost;
     }
-    
+
     return;
 }
 
@@ -72,11 +72,11 @@ int UpdateRoutes(struct pkt_RT_UPDATE *RecvdUpdatePacket, int costToNbr, int myI
                 if((routingTable[j].next_hop == RecvdUpdatePacket->sender_id) || 
                     (((cost_to_sender + RecvdUpdatePacket->route[i].cost) < routingTable[j].cost ) && myID != RecvdUpdatePacket->route[i].next_hop))
                 {
-                    routingTable[i].next_hop = RecvdUpdatePacket->sender_id; // next_hop is sender
-                    routingTable[i].cost = cost_to_sender + RecvdUpdatePacket->route[i].cost; // cost is through sender
-                    if(routingTable[i].cost > INFINITY)
+                    routingTable[j].next_hop = RecvdUpdatePacket->sender_id; // next_hop is sender
+                    routingTable[j].cost = cost_to_sender + RecvdUpdatePacket->route[i].cost; // cost is through sender
+                    if(routingTable[j].cost > INFINITY)
                     {
-                        routingTable[i].cost = INFINITY;
+                        routingTable[j].cost = INFINITY;
                     }
 
                     is_changed = 1;
@@ -90,9 +90,9 @@ int UpdateRoutes(struct pkt_RT_UPDATE *RecvdUpdatePacket, int costToNbr, int myI
         if(is_found == 0x00)
         {
             ++NumRoutes;
-            routingTable[NumRoutes-1].dest_id = RecvdUpdatePacket->route[j].dest_id;
-            routingTable[NumRoutes-1].next_hop = RecvdUpdatePacket->route[j].next_hop;
-            routingTable[NumRoutes-1].cost = RecvdUpdatePacket->route[j].cost;
+            routingTable[NumRoutes-1].dest_id = RecvdUpdatePacket->route[i].dest_id;
+            routingTable[NumRoutes-1].next_hop = RecvdUpdatePacket->route[i].next_hop;
+            routingTable[NumRoutes-1].cost = cost_to_sender + RecvdUpdatePacket->route[i].cost;
             is_changed = 1;
         }
     }
