@@ -34,6 +34,18 @@ R : router
 NE : 
 	./ne 9999 1_routers.conf
 
+router0 : router
+	./router 0 localhost 2000 3000
+
+router1 : router
+	./router 1 localhost 2000 3001
+
+router2 : router
+	./router 2 localhost 2000 3002
+
+router3 : router
+	./router 3 localhost 2000 3003
+
 clean :
 	rm -f *.o
 	rm -f router
