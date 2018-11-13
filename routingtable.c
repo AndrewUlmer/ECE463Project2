@@ -30,6 +30,12 @@ void InitRoutingTbl (struct pkt_INIT_RESPONSE *InitResponse, int myID)
         routingTable[i].next_hop = routingTable[i].dest_id;
         routingTable[i].cost = InitResponse->nbrcost[i-1].cost;
     }
+    for(i = NumRoutes;i < MAX_ROUTERS;++i)
+    {
+        routingTable[i].dest_id = -1;
+        routingTable[i].next_hop = -1;
+        routingTable[i].cost = -1;
+    }
 
     return;
 }
@@ -42,6 +48,8 @@ int UpdateRoutes(struct pkt_RT_UPDATE *RecvdUpdatePacket, int costToNbr, int myI
     int is_changed = 0; // boolean updated if routing table changed
     unsigned char is_found = 0x00; // boolean updated if received entry is found in routing table
     unsigned int cost_to_sender = 0; // cost to the router that sent their routing table
+    int temp = 0; // checking variable to see if table has been updated
+    int temp2 = 0;
 
     // Get cost to sender router (HASH TABLE WOULD BE BETTER)
     for(j = 0; j < NumRoutes; ++j)
@@ -69,17 +77,24 @@ int UpdateRoutes(struct pkt_RT_UPDATE *RecvdUpdatePacket, int costToNbr, int myI
                 // if received entry results in better route, 
                 // update entry, set is_changed to 1, go to next received entry
                 // if(forced update || found better path with split horizon)
-                if((routingTable[j].next_hop == RecvdUpdatePacket->sender_id) || 
-                    (((cost_to_sender + RecvdUpdatePacket->route[i].cost) < routingTable[j].cost ) && myID != RecvdUpdatePacket->route[i].next_hop))
+                if(((routingTable[j].next_hop == RecvdUpdatePacket->sender_id) || 
+                    (((cost_to_sender + RecvdUpdatePacket->route[i].cost) < routingTable[j].cost))) && (myID != RecvdUpdatePacket->route[i].next_hop))
+                
+                /*if((routingTable[j].next_hop == RecvdUpdatePacket->sender_id) || 
+                    ((((cost_to_sender + RecvdUpdatePacket->route[i].cost) < routingTable[j].cost)) && (myID != RecvdUpdatePacket->route[i].next_hop)))*/
                 {
-                    routingTable[j].next_hop = RecvdUpdatePacket->sender_id; // next_hop is sender
-                    routingTable[j].cost = cost_to_sender + RecvdUpdatePacket->route[i].cost; // cost is through sender
-                    if(routingTable[j].cost > INFINITY)
-                    {
-                        routingTable[j].cost = INFINITY;
-                    }
-
-                    is_changed = 1;
+                        temp2 = routingTable[j].next_hop;
+                        routingTable[j].next_hop = RecvdUpdatePacket->sender_id; // next_hop is sender
+                        temp = routingTable[j].cost;
+                        routingTable[j].cost = cost_to_sender + RecvdUpdatePacket->route[i].cost; // cost is through sender
+                        if((routingTable[j].cost != temp) || (routingTable[j].next_hop != temp2)) {
+                            is_changed = 1;
+                        }
+                        if(routingTable[j].cost > INFINITY)
+                        {
+                            routingTable[j].cost = INFINITY;
+                        }
+                    //is_changed = 1
                 }
 
                 break; // go to next received entry (stop iterating through my routing table)
@@ -110,7 +125,7 @@ void ConvertTabletoPkt(struct pkt_RT_UPDATE *UpdatePacketToSend, int myID)
     // memcopy would probably be better
     for(i = 0; i < NumRoutes; ++i)
     {
-        UpdatePacketToSend->route[i].dest_id = routingTable[i].dest_id;
+         UpdatePacketToSend->route[i].dest_id = routingTable[i].dest_id;
         UpdatePacketToSend->route[i].next_hop = routingTable[i].next_hop;
         UpdatePacketToSend->route[i].cost = routingTable[i].cost;
     }
@@ -126,7 +141,9 @@ void PrintRoutes (FILE* Logfile, int myID)
     {
         fprintf(Logfile, "\nR%d -> R%d: R%d, %d", myID, routingTable[i].dest_id, routingTable[i].next_hop, routingTable[i].cost);
     }
-
+    
+    fprintf(Logfile, "\n");
+    
     fflush(Logfile);
 }
 

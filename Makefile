@@ -32,7 +32,7 @@ R : router
 	./router 0 localhost 9999 8080	
 
 NE : 
-	./ne 9999 1_routers.conf
+	./ne 2000 4_routers.conf
 
 router0 : router
 	./router 0 localhost 2000 3000
@@ -50,3 +50,7 @@ clean :
 	rm -f *.o
 	rm -f router
 	rm -f unit-test
+	rm -f router0.log 
+	rm -f router1.log 
+	rm -f router2.log
+	rm -f router3.log
