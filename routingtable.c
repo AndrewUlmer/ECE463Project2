@@ -134,16 +134,14 @@ void ConvertTabletoPkt(struct pkt_RT_UPDATE *UpdatePacketToSend, int myID)
 void PrintRoutes (FILE* Logfile, int myID)
 {
     int i = 0; // for loop var
-
+    fprintf(Logfile, "\n"); 
     fprintf(Logfile, "Routing Table:");
 
     for(i = 0; i < NumRoutes; ++i)
     {
         fprintf(Logfile, "\nR%d -> R%d: R%d, %d", myID, routingTable[i].dest_id, routingTable[i].next_hop, routingTable[i].cost);
     }
-    
-    fprintf(Logfile, "\n");
-    
+    fprintf(Logfile, "\n"); 
     fflush(Logfile);
 }
 

@@ -21,6 +21,8 @@ int main(int argc, char **argv)
     int msec = 0;
     int i = 0; 
     int j = 0;
+    int temp = 0;
+    int checkChange = 0;
     int interval = 0; // haha
     int received_bytes;
     int UDPfd;
@@ -88,9 +90,9 @@ int main(int argc, char **argv)
 
     tv.tv_sec = UPDATE_INTERVAL;
     tv.tv_usec = 0;
-    while(1) {
-        // Set timer values
 
+    while(1) {
+        
         // Set file descriptors
         FD_ZERO(&rfds);
         FD_SET(UDPfd, &rfds);
@@ -125,18 +127,24 @@ int main(int argc, char **argv)
             }
             
             // Update routes
+            temp = is_changed;
             is_changed = UpdateRoutes(RecvdUpdatePacket, 0, routerID);
-            
+            if((is_changed == 0) && (temp == 0)) {
+                checkChange++;
+            }
+            else {
+                checkChange = 0;
+            }
             // If update is made - print the routes to log
+//            fprintf(fptr,"\n");                                    
             PrintRoutes(fptr, routerID);
         }
         else {
             interval++;
-            if((interval == 5) &&  (is_changed == 0)) {
-                fprintf(fptr,"Converged: %d",interval);                                    
+            if(checkChange == 5) {
+                fprintf(fptr,"Converged: %d\n\n",interval);                                    
                 interval = 0;
             }
-            
             tv.tv_sec = UPDATE_INTERVAL;
             tv.tv_usec = 0;
             
@@ -160,7 +168,6 @@ int main(int argc, char **argv)
                 nbrsInt[i].cost++;
             }
         }
-        fprintf(fptr, "\n");    
     }
     return 0;
 }
